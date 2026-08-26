@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Hail King Jesus in E</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .mixer-container {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 600px;
+    }
+    h1 { text-align: center; color: #fff; margin-bottom: 25px; font-size: 1.5rem; }
+    
+    /* Master Controls */
+    .master-controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
+    .main-btn {
+      background: #6200ee; color: white; border: none; padding: 14px;
+      border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s;
+    }
+    .main-btn:hover { background: #3700b3; }
+    .main-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+    input[type="range"] { width: 100%; accent-color: #6200ee; cursor: pointer; }
+    
+    /* Mixer Channels */
+    .faders-grid { display: flex; flex-direction: column; gap: 16px; }
+    .fader-row { 
+      display: flex; 
+      align-items: center; 
+      background: #252525;
+      padding: 12px 16px;
+      border-radius: 8px;
+      gap: 15px; 
+    }
+    .fader-label { width: 90px; font-weight: bold; font-size: 0.9rem; color: #fff; }
+    .fader-input { flex-grow: 1; }
+    
+    /* Mute / Solo Buttons */
+    .control-btn {
+      border: 1px solid #444;
+      background: #333;
+      color: #aaa;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      width: 50px;
+      text-align: center;
+    }
+    .control-btn:hover { background: #444; color: #fff; }
+    
+    /* Active Toggle States */
+    .control-btn.muted.active {
+      background: #d32f2f;
+      color: white;
+      border-color: #d32f2f;
+    }
+    .control-btn.soloed.active {
+      background: #f57c00;
+      color: white;
+      border-color: #f57c00;
+    }
+    
+    .status-text { 
+      text-align: center; 
+      color: #aaa; 
+      font-size: 0.9rem; 
+      margin-top: 20px; 
+      padding: 10px;
+      background: #151515;
+      border-radius: 6px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+<div class="mixer-container">
+  <h1>All Hail King Jesus in E</h1>
+  
+  <div class="master-controls">
+    <button id="playPauseBtn" class="main-btn" disabled>Loading Audio Stems...</button>
+    <div>
+      <label style="font-size: 0.85rem; color: #aaa; display: block; margin-bottom: 5px;">Song Progress</label>
+      <input type="range" id="progressBar" min="0" max="100" value="0" step="0.1">
+    </div>
+  </div>
+
+  <div class="faders-grid">
+    <div class="fader-row" data-track="0">
+      <span class="fader-label">Melody</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
+    <div class="fader-row" data-track="1">
+      <span class="fader-label">Harmony 1</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
+    <div class="fader-row" data-track="2">
+      <span class="fader-label">Harmony 2</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
+    <div class="fader-row" data-track="3">
+      <span class="fader-label">Piano</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
+  </div>
+  
+  <div id="status" class="status-text">Connecting to GitHub audio storage...</div>
+</div>
+
+<script>
+// Live absolute URLs
+const trackUrls = [
+  'https://wjohnson93.github.io/stthomasvocals/DIA-Bb-Melody.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/DIA-Bb-H1.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/DIA-Bb-H2.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/DIA-Bb-Piano.mp3'
+];
+
+let audioCtx;
+let buffers = [];
+let sources = [];
+let gainNodes = [];
+
+let trackStates = [
+  { volume: 0.8, isMuted: false, isSoloed: false },
+  { volume: 0.8, isMuted: false, isSoloed: false },
+  { volume: 0.8, isMuted: false, isSoloed: false },
+  { volume: 0.8, isMuted: false, isSoloed: false }
+];
+
+let isPlaying = false;
+let startTime = 0;
+let pauseTime = 0;
+let animationFrameId;
+
+const playPauseBtn = document.getElementById('playPauseBtn');
+const progressBar = document.getElementById('progressBar');
+const statusText = document.getElementById('status');
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  
+  // MOBILE SILENT SWITCH FIX: Forces browsers to route audio out of ambient mode and into media playback channels
+  if (navigator.audioSession) {
+    try {
+      navigator.audioSession.type = "playback";
+    } catch (e) {
+      console.warn("Could not set audio session type:", e);
+    }
+  }
+  
+  if (gainNodes.length === 0) {
+    trackStates.forEach((state, index) => {
+      const gainNode = audioCtx.createGain();
+      gainNode.connect(audioCtx.destination);
+      gainNodes.push(gainNode);
+    });
+    updateVolumes();
+  }
+}
+
+function updateVolumes() {
+  if (!audioCtx || gainNodes.length === 0) return;
+  const anyTrackSoloed = trackStates.some(t => t.isSoloed);
+  
+  trackStates.forEach((state, index) => {
+    let targetGain = state.volume;
+    if (anyTrackSoloed && !state.isSoloed) targetGain = 0;
+    if (state.isMuted) targetGain = 0;
+    
+    gainNodes[index].gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.01);
+  });
+}
+
+async function loadAudio() {
+  try {
+    statusText.textContent = 'Downloading stems from GitHub in parallel...';
+    
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const downloadAndDecodePromises = trackUrls.map(async (url) => {
+      const fileName = url.split('/').pop();
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Server responded with status ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        statusText.textContent = `Decoding ${fileName}...`;
+        return await audioCtx.decodeAudioData(arrayBuffer);
+      } catch (fileError) {
+        throw new Error(`[${fileName}] -> ${fileError.message}`);
+      }
+    });
+    
+    buffers = await Promise.all(downloadAndDecodePromises);
+    
+    playPauseBtn.disabled = false;
+    playPauseBtn.textContent = 'Play';
+    statusText.style.color = '#4caf50';
+    statusText.textContent = '★ All tracks loaded successfully and synced! ★';
+  } catch (error) {
+    console.error(error);
+    statusText.style.color = '#ff5252';
+    statusText.innerHTML = `<strong>Mixer Error:</strong><br>${error.message}`;
+  }
+}
+
+async function playAudio(offset = 0) {
+  initAudio();
+  
+  if (audioCtx.state === 'suspended') {
+    await audioCtx.resume();
+  }
+  
+  sources = [];
+  
+  buffers.forEach((buffer, index) => {
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(gainNodes[index]);
+    source.start(0, offset);
+    sources.push(source);
+  });
+  
+  startTime = audioCtx.currentTime - offset;
+  isPlaying = true;
+  playPauseBtn.textContent = 'Pause';
+  statusText.style.color = '#4caf50';
+  statusText.textContent = 'Playing...';
+  animateProgressBar();
+}
+
+function stopAudio() {
+  sources.forEach(source => { try { source.stop(); } catch(e){} });
+  cancelAnimationFrame(animationFrameId);
+  pauseTime = audioCtx.currentTime - startTime;
+  isPlaying = false;
+  playPauseBtn.textContent = 'Play';
+  statusText.style.color = '#aaa';
+  statusText.textContent = 'Paused';
+}
+
+function animateProgressBar() {
+  if (!isPlaying) return;
+  
+  const currentTime = audioCtx.currentTime - startTime;
+  const duration = buffers[0].duration;
+  
+  if (currentTime >= duration) {
+    isPlaying = false;
+    pauseTime = 0;
+    progressBar.value = 0;
+    playPauseBtn.textContent = 'Play';
+    statusText.textContent = 'Finished playing.';
+    return;
+  }
+  
+  progressBar.value = (currentTime / duration) * 100;
+  animationFrameId = requestAnimationFrame(animateProgressBar);
+}
+
+playPauseBtn.addEventListener('click', async () => {
+  try {
+    if (isPlaying) {
+      stopAudio();
+    } else {
+      await playAudio(pauseTime);
+    }
+  } catch (playbackError) {
+    console.error("Playback Exception:", playbackError);
+    statusText.style.color = '#ff5252';
+    statusText.innerHTML = `<strong>Playback Failed:</strong><br>${playbackError.message}`;
+  }
+});
+
+document.querySelectorAll('.fader-row').forEach(row => {
+  const trackIndex = parseInt(row.getAttribute('data-track'));
+  const fader = row.querySelector('.vol-fader');
+  const muteBtn = row.querySelector('.muted');
+  const soloBtn = row.querySelector('.soloed');
+  
+  fader.addEventListener('input', (e) => {
+    initAudio();
+    trackStates[trackIndex].volume = parseFloat(e.target.value);
+    updateVolumes();
+  });
+  
+  muteBtn.addEventListener('click', () => {
+    initAudio();
+    trackStates[trackIndex].isMuted = !trackStates[trackIndex].isMuted;
+    muteBtn.classList.toggle('active');
+    updateVolumes();
+  });
+  
+  soloBtn.addEventListener('click', () => {
+    initAudio();
+    trackStates[trackIndex].isSoloed = !trackStates[trackIndex].isSoloed;
+    soloBtn.classList.toggle('active');
+    updateVolumes();
+  });
+});
+
+progressBar.addEventListener('input', (e) => {
+  if (buffers.length === 0) return;
+  const duration = buffers[0].duration;
+  const seekTo = (e.target.value / 100) * duration;
+  
+  if (isPlaying) {
+    stopAudio();
+    playAudio(seekTo);
+  } else {
+    pauseTime = seekTo;
+  }
+});
+
+loadAudio();
+</script>
+
+</body>
+</html>
