@@ -166,6 +166,15 @@ function initAudio() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
   
+  // MOBILE SILENT SWITCH FIX: Forces browsers to route audio out of ambient mode and into media playback channels
+  if (navigator.audioSession) {
+    try {
+      navigator.audioSession.type = "playback";
+    } catch (e) {
+      console.warn("Could not set audio session type:", e);
+    }
+  }
+  
   if (gainNodes.length === 0) {
     trackStates.forEach((state, index) => {
       const gainNode = audioCtx.createGain();
@@ -277,7 +286,6 @@ function animateProgressBar() {
   animationFrameId = requestAnimationFrame(animateProgressBar);
 }
 
-// Added Try-Catch inside the core button click to capture hidden audio engine failures
 playPauseBtn.addEventListener('click', async () => {
   try {
     if (isPlaying) {
