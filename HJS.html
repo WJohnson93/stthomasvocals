@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hallelujah Jesus Saves in C</title>
+  <title>Hallelujah Jesus in C</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -121,7 +121,7 @@
       <button class="control-btn soloed">SOLO</button>
     </div>
     <div class="fader-row" data-track="3">
-      <span class="fader-label">Band</span>
+      <span class="fader-label">Piano</span>
       <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
       <button class="control-btn muted">MUTE</button>
       <button class="control-btn soloed">SOLO</button>
@@ -164,6 +164,15 @@ const statusText = document.getElementById('status');
 function initAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  
+  // MOBILE SILENT SWITCH FIX: Forces browsers to route audio out of ambient mode and into media playback channels
+  if (navigator.audioSession) {
+    try {
+      navigator.audioSession.type = "playback";
+    } catch (e) {
+      console.warn("Could not set audio session type:", e);
+    }
   }
   
   if (gainNodes.length === 0) {
@@ -277,7 +286,6 @@ function animateProgressBar() {
   animationFrameId = requestAnimationFrame(animateProgressBar);
 }
 
-// Added Try-Catch inside the core button click to capture hidden audio engine failures
 playPauseBtn.addEventListener('click', async () => {
   try {
     if (isPlaying) {
