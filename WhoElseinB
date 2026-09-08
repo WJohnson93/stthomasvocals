@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Who Else in Ab</title>
+  <title>Who Else in B</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -91,7 +91,7 @@
 <body>
 
 <div class="mixer-container">
-  <h1>Who Else in Ab</h1>
+  <h1>Who Else in B</h1>
   
   <div class="master-controls">
     <button id="playPauseBtn" class="main-btn" disabled>Loading Audio Stems...</button>
@@ -134,10 +134,10 @@
 <script>
 // Live absolute URLs
 const trackUrls = [
-  'https://wjohnson93.github.io/stthomasvocals/WE-M.mp3',
-  'https://wjohnson93.github.io/stthomasvocals/WE-H1.mp3',
-  'https://wjohnson93.github.io/stthomasvocals/WE-H2.mp3',
-  'https://wjohnson93.github.io/stthomasvocals/WE-B.mp3'
+  'https://wjohnson93.github.io/stthomasvocals/WE-M-B.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/WE-H1-B.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/WE-H2-B.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/WE-B-B.mp3'
 ];
 
 let audioCtx;
