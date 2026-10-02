@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Here I Am To Worship</title>
+  <!-- Load Tone.js via CDN (No sign-up or installation required) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .mixer-container {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 600px;
+    }
+    h1 { text-align: center; color: #fff; margin-bottom: 25px; font-size: 1.5rem; }
+    
+    /* Master Controls */
+    .master-controls { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
+    .main-btn {
+      background: #6200ee; color: white; border: none; padding: 14px;
+      border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s;
+    }
+    .main-btn:hover { background: #3700b3; }
+    .main-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+    
+    .control-label-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .control-label { font-size: 0.85rem; color: #aaa; }
+    .control-value { font-size: 0.9rem; font-weight: bold; color: #bb86fc; }
+    
+    input[type="range"] { width: 100%; accent-color: #6200ee; cursor: pointer; }
+    
+    /* Mixer Channels */
+    .faders-grid { display: flex; flex-direction: column; gap: 16px; }
+    .fader-row { 
+      display: flex; 
+      align-items: center; 
+      background: #252525;
+      padding: 12px 16px;
+      border-radius: 8px;
+      gap: 15px; 
+    }
+    .fader-label { width: 90px; font-weight: bold; font-size: 0.9rem; color: #fff; }
+    .fader-input { flex-grow: 1; }
+    
+    /* Mute / Solo Buttons */
+    .control-btn {
+      border: 1px solid #444;
+      background: #333;
+      color: #aaa;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      width: 50px;
+      text-align: center;
+    }
+    .control-btn:hover { background: #444; color: #fff; }
+    
+    /* Active Toggle States */
+    .control-btn.muted.active {
+      background: #d32f2f;
+      color: white;
+      border-color: #d32f2f;
+    }
+    .control-btn.soloed.active {
+      background: #f57c00;
+      color: white;
+      border-color: #f57c00;
+    }
+    
+    .status-text { 
+      text-align: center; 
+      color: #aaa; 
+      font-size: 0.9rem; 
+      margin-top: 20px; 
+      padding: 10px;
+      background: #151515;
+      border-radius: 6px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+<div class="mixer-container">
+  <h1>Here I Am To Worship</h1>
+  
+  <div class="master-controls">
+    <button id="playPauseBtn" class="main-btn" disabled>Loading Audio Stems...</button>
+    
+    <!-- Transpose Control -->
+    <div>
+      <div class="control-label-group">
+        <span class="control-label">Key Transpose</span>
+        <span id="transposeDisplay" class="control-value">Key of G (Original Key)</span>
+      </div>
+      <input type="range" id="transposeControl" min="-12" max="12" value="0" step="1">
+    </div>
+
+    <!-- Progress Bar -->
+    <div>
+      <div class="control-label-group">
+        <span class="control-label">Song Progress</span>
+      </div>
+      <input type="range" id="progressBar" min="0" max="100" value="0" step="0.1">
+    </div>
+  </div>
+
+  <div class="faders-grid">
+    <div class="fader-row" data-track="0">
+      <span class="fader-label">Melody</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
+    <div class="fader-row" data-track="1">
+      <span class="fader-label">Harmony 1</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
+    <div class="fader-row" data-track="2">
+      <span class="fader-label">Harmony 2</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
+    <div class="fader-row" data-track="3">
+      <span class="fader-label">Band</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
+  </div>
+  
+  <div id="status" class="status-text">Connecting to GitHub audio storage...</div>
+</div>
+
+<script>
+// Live absolute URLs
+const trackUrls = [
+  'https://wjohnson93.github.io/stthomasvocals/HIATW-M2.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/HIATW-H1.2.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/HIATW-H2.2.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/HIATW-B2.mp3'
+];
+
+// Chromatic scale starting from base key G
+const chromaticKeys = ['G', 'A♭ / G♯', 'A', 'B♭', 'B', 'C', 'D♭ / C♯', 'D', 'E♭', 'E', 'F', 'F♯ / G♭'];
+
+let players = [];
+let volumeNodes = [];
+let pitchShifters = [];
+
+let trackStates = [
+  { volume: 0.8, isMuted: false, isSoloed: false },
+  { volume: 0.8, isMuted: false, isSoloed: false },
+  { volume: 0.8, isMuted: false, isSoloed: false },
+  { volume: 0.8, isMuted: false, isSoloed: false }
+];
+
+let isPlaying = false;
+let currentTranspose = 0; // Transposition in semitones
+let animationFrameId;
+
+const playPauseBtn = document.getElementById('playPauseBtn');
+const progressBar = document.getElementById('progressBar');
+const transposeControl = document.getElementById('transposeControl');
+const transposeDisplay = document.getElementById('transposeDisplay');
+const statusText = document.getElementById('status');
+
+function updateVolumes() {
+  const anyTrackSoloed = trackStates.some(t => t.isSoloed);
+  
+  trackStates.forEach((state, index) => {
+    if (!volumeNodes[index]) return;
+    
+    let targetGain = state.volume;
+    if (anyTrackSoloed && !state.isSoloed) targetGain = 0;
+    if (state.isMuted) targetGain = 0;
+    
+    // Convert linear gain scale (0 to 1) to Tone.js Decibels
+    const db = targetGain <= 0.001 ? -100 : Tone.gainToDb(targetGain);
+    volumeNodes[index].volume.rampTo(db, 0.05);
+  });
+}
+
+function updateTransposeDisplay() {
+  const keyIndex = ((0 + currentTranspose) % 12 + 12) % 12;
+  const currentKey = chromaticKeys[keyIndex];
+  
+  let shiftText = '';
+  if (currentTranspose === 0) {
+    shiftText = '(Original Key)';
+  } else if (currentTranspose > 0) {
+    shiftText = `(+${currentTranspose} semitone${currentTranspose > 1 ? 's' : ''})`;
+  } else {
+    shiftText = `(${currentTranspose} semitone${currentTranspose < -1 ? 's' : ''})`;
+  }
+  
+  transposeDisplay.textContent = `Key of ${currentKey} ${shiftText}`;
+}
+
+async function loadAudio() {
+  try {
+    statusText.textContent = 'Downloading stems from GitHub in parallel...';
+
+    // Set up audio chain for each stem: Player -> PitchShift -> Volume -> Master Destination
+    const loadPromises = trackUrls.map((url, index) => {
+      return new Promise((resolve, reject) => {
+        const pitchShift = new Tone.PitchShift({ pitch: currentTranspose }).toDestination();
+        const volumeNode = new Tone.Volume().connect(pitchShift);
+        
+        // GrainPlayer keeps speed static during pitch shifts
+        const player = new Tone.GrainPlayer({
+          url: url,
+          grainSize: 0.2,
+          overlap: 0.1,
+          onload: () => resolve(),
+          onerror: (err) => reject(new Error(`Failed to load track ${index + 1}`))
+        }).connect(volumeNode);
+
+        players[index] = player;
+        pitchShifters[index] = pitchShift;
+        volumeNodes[index] = volumeNode;
+      });
+    });
+
+    await Promise.all(loadPromises);
+    updateVolumes();
+    
+    playPauseBtn.disabled = false;
+    playPauseBtn.textContent = 'Play';
+    statusText.style.color = '#4caf50';
+    statusText.textContent = '★ All tracks loaded successfully with time-stretch pitch control! ★';
+  } catch (error) {
+    console.error(error);
+    statusText.style.color = '#ff5252';
+    statusText.innerHTML = `<strong>Mixer Error:</strong><br>${error.message}`;
+  }
+}
+
+async function playAudio(offset = 0) {
+  // Mobile audio unlocking
+  await Tone.start();
+  
+  const startTime = Tone.now();
+  players.forEach(player => {
+    player.start(startTime, offset);
+  });
+  
+  isPlaying = true;
+  playPauseBtn.textContent = 'Pause';
+  statusText.style.color = '#4caf50';
+  statusText.textContent = 'Playing...';
+  animateProgressBar();
+}
+
+function stopAudio() {
+  players.forEach(player => {
+    try { player.stop(); } catch(e){}
+  });
+  cancelAnimationFrame(animationFrameId);
+  isPlaying = false;
+  playPauseBtn.textContent = 'Play';
+  statusText.style.color = '#aaa';
+  statusText.textContent = 'Paused';
+}
+
+function animateProgressBar() {
+  if (!isPlaying || !players[0] || !players[0].buffer) return;
+  
+  const currentPos = players[0].now() - players[0].startTime;
+  const duration = players[0].buffer.duration;
+  
+  if (currentPos >= duration) {
+    stopAudio();
+    progressBar.value = 0;
+    statusText.textContent = 'Finished playing.';
+    return;
+  }
+  
+  progressBar.value = (currentPos / duration) * 100;
+  animationFrameId = requestAnimationFrame(animateProgressBar);
+}
+
+// Event Listeners
+playPauseBtn.addEventListener('click', async () => {
+  try {
+    if (isPlaying) {
+      stopAudio();
+    } else {
+      const duration = players[0].buffer.duration;
+      const currentOffset = (parseFloat(progressBar.value) / 100) * duration;
+      await playAudio(currentOffset);
+    }
+  } catch (playbackError) {
+    console.error("Playback Exception:", playbackError);
+    statusText.style.color = '#ff5252';
+    statusText.innerHTML = `<strong>Playback Failed:</strong><br>${playbackError.message}`;
+  }
+});
+
+transposeControl.addEventListener('input', (e) => {
+  currentTranspose = parseInt(e.target.value);
+  updateTransposeDisplay();
+  
+  // Update pitch live on all active pitch shifter nodes
+  pitchShifters.forEach(shifter => {
+    if (shifter) {
+      shifter.pitch = currentTranspose;
+    }
+  });
+});
+
+document.querySelectorAll('.fader-row').forEach(row => {
+  const trackIndex = parseInt(row.getAttribute('data-track'));
+  const fader = row.querySelector('.vol-fader');
+  const muteBtn = row.querySelector('.muted');
+  const soloBtn = row.querySelector('.soloed');
+  
+  fader.addEventListener('input', (e) => {
+    trackStates[trackIndex].volume = parseFloat(e.target.value);
+    updateVolumes();
+  });
+  
+  muteBtn.addEventListener('click', () => {
+    trackStates[trackIndex].isMuted = !trackStates[trackIndex].isMuted;
+    muteBtn.classList.toggle('active');
+    updateVolumes();
+  });
+  
+  soloBtn.addEventListener('click', () => {
+    trackStates[trackIndex].isSoloed = !trackStates[trackIndex].isSoloed;
+    soloBtn.classList.toggle('active');
+    updateVolumes();
+  });
+});
+
+progressBar.addEventListener('input', (e) => {
+  if (!players[0] || !players[0].buffer) return;
+  const duration = players[0].buffer.duration;
+  const seekTo = (e.target.value / 100) * duration;
+  
+  if (isPlaying) {
+    stopAudio();
+    playAudio(seekTo);
+  }
+});
+
+loadAudio();
+</script>
+
+</body>
+</html>
