@@ -132,6 +132,12 @@
       <button class="control-btn muted">MUTE</button>
       <button class="control-btn soloed">SOLO</button>
     </div>
+    <div class="fader-row" data-track="5">
+      <span class="fader-label">Melody</span>
+      <input type="range" class="vol-fader" min="0" max="1" step="0.01" value="0.8">
+      <button class="control-btn muted">MUTE</button>
+      <button class="control-btn soloed">SOLO</button>
+    </div>
   </div>
   
   <div id="status" class="status-text">Connecting to GitHub audio storage...</div>
@@ -144,7 +150,8 @@ const trackUrls = [
   'https://wjohnson93.github.io/stthomasvocals/JITR-H2.mp3',
   'https://wjohnson93.github.io/stthomasvocals/JITR-H3.mp3',
   'https://wjohnson93.github.io/stthomasvocals/JITR-C.mp3',
-  'https://wjohnson93.github.io/stthomasvocals/JITR-B.mp3'
+  'https://wjohnson93.github.io/stthomasvocals/JITR-B.mp3',
+  'https://wjohnson93.github.io/stthomasvocals/JITR-M.mp3',
 ];
 
 let audioCtx;
@@ -157,7 +164,8 @@ let trackStates = [
   { volume: 0.8, isMuted: false, isSoloed: false },
   { volume: 0.8, isMuted: false, isSoloed: false },
   { volume: 0.8, isMuted: false, isSoloed: false },
-  { volume: 0.8, isMuted: false, isSoloed: false }
+  { volume: 0.8, isMuted: false, isSoloed: false },
+  { volume: 0.8, isMuted: false, isSoloed: false }  
 ];
 
 let isPlaying = false;
